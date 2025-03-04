@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Книга</title>
+</head>
+<body>
+<p th:text="'Информация о книге: ' + ${book.getTitle() + ' ' + book.getAuthor() + ', ' + book.getYear()}">Value</p>
+<hr>
+
+<div th:if="${owner}">
+    <span>Книга сейчас у:</span><span th:text="${owner.getFio()}">Owner</span>
+    <form th:method="PATCH" th:action="@{/book/{id}/release(id=${book.id})}">
+        <input type="submit" value="Освободить">
+    </form>
+</div>
+
+<div th:if="${people}">
+    <form th:method="PATCH" th:action="@{/book/{id}/assign(id=${book.id})}">
+        <span>Эта книга свободна. Кому назначить ее?</span>
+        <label for="person">Выберите человека: </label>
+        <select id="person" th:object="${person}" th:field="*{id}">
+            <option th:each="person : ${people}" th:value="${person.getId()}" th:text="${person.getFio()}"></option>
+        </select>
+        <input type="submit" value="Назначить">
+    </form>
+</div>
+
+<hr>
+<form th:method="DELETE" th:action="@{/book/{id}(id=${book.getId()})}">
+    <input type="submit" value="Удалить">
+</form>
+<form th:method="GET" th:action="@{/book/{id}/edit(id=${book.getId()})}">
+    <input type="submit" value="Редактировать">
+</form>
+
+</body>
+</html>
