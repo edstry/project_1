@@ -5,9 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import ru.edstry.project1.models.Book;
 import ru.edstry.project1.models.Person;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class PeopleDAO {
@@ -19,7 +21,7 @@ public class PeopleDAO {
     }
 
     public List<Person> index() {
-        return jdbcTemplate.query("SELECT * FROM person", new BeanPropertyRowMapper<>(Person.class));
+        return jdbcTemplate.query("SELECT * FROM person ORDER BY id", new BeanPropertyRowMapper<>(Person.class));
     }
 
     public Person getPerson(int id) {
@@ -45,5 +47,9 @@ public class PeopleDAO {
         jdbcTemplate.update("DELETE FROM person WHERE id = ?", id);
     }
 
+    public List<Book> getBookList(int personId) {
+        String sql = "SELECT book.* FROM book JOIN person ON book.person_id = person.id WHERE person.id =?;";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Book.class), personId);
+    }
 
 }

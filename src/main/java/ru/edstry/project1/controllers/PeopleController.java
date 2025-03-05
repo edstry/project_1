@@ -6,18 +6,24 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.edstry.project1.dao.BookDAO;
 import ru.edstry.project1.dao.PeopleDAO;
+import ru.edstry.project1.models.Book;
 import ru.edstry.project1.models.Person;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/people")
 public class PeopleController {
 
     private final PeopleDAO peopleDao;
+    private final BookDAO bookDao;
 
     @Autowired
-    public PeopleController(PeopleDAO peopleDao) {
+    public PeopleController(PeopleDAO peopleDao, BookDAO bookDao) {
         this.peopleDao = peopleDao;
+        this.bookDao = bookDao;
     }
 
     @GetMapping()
@@ -27,8 +33,10 @@ public class PeopleController {
     }
 
     @GetMapping("/{id}")
-    public String show(@PathVariable("id") int id, Model model) {
-        model.addAttribute("person", peopleDao.getPerson(id));
+    public String show(@PathVariable("id") int personId, Model model) {
+        model.addAttribute("person", peopleDao.getPerson(personId));
+        List<Book> list = peopleDao.getBookList(personId);
+        model.addAttribute("books", list);
         return "people/show";
     }
 

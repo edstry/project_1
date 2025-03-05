@@ -8,6 +8,14 @@
     <p th:text="'ID: ' + ${person.getId()}">Value</p>
     <p th:text="'FIO: ' + ${person.getFio() + ', ' + person.getYear_of_birth()}">Value</p>
     <hr>
+        <span>Книги: </span>
+        <div th:if="${not #lists.isEmpty(books)}" th:each="book : ${books}">
+            <span th:text="${book.title + ' ' + book.getAuthor() + ', ' + book.getYear()}"></span>
+        </div>
+        <div th:if="${#lists.isEmpty(books)}">
+            <span>Человек пока не взяд ни одной книги</span>
+        </div>
+    <hr>
     <form th:method="DELETE" th:action="@{/people/{id}(id=${person.getId()})}">
         <input type="submit" value="Удалить">
     </form>
