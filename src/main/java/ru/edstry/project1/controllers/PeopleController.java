@@ -10,6 +10,8 @@ import ru.edstry.project1.dao.BookDAO;
 import ru.edstry.project1.dao.PeopleDAO;
 import ru.edstry.project1.models.Book;
 import ru.edstry.project1.models.Person;
+import ru.edstry.project1.services.PersonServices;
+import ru.edstry.project1.util.PersonValidator;
 
 import java.util.List;
 
@@ -17,32 +19,31 @@ import java.util.List;
 @RequestMapping("/people")
 public class PeopleController {
 
-    private final PeopleDAO peopleDao;
-    private final BookDAO bookDao;
+    private final PersonServices personServices;
+    private final PersonValidator personValidator;
 
     @Autowired
-    public PeopleController(PeopleDAO peopleDao, BookDAO bookDao) {
-        this.peopleDao = peopleDao;
-        this.bookDao = bookDao;
+    public PeopleController(PersonServices personServices, PersonValidator personValidator) {
+        this.personServices = personServices;
+        this.personValidator = personValidator;
     }
 
     @GetMapping()
     public String index(Model model) {
-        model.addAttribute("people", peopleDao.index());
+        model.addAttribute("people", personServices.index());
         return "people/index";
     }
 
     @GetMapping("/{id}")
     public String show(@PathVariable("id") int personId, Model model) {
-        model.addAttribute("person", peopleDao.getPerson(personId));
-        List<Book> list = peopleDao.getBookList(personId);
-        model.addAttribute("books", list);
+        model.addAttribute("person", personServices.getPersonById(personId));
+        model.addAttribute("books", personServices.getBookByPersonId(personId));
         return "people/show";
     }
 
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable("id") int id, Model model) {
-        model.addAttribute("person", peopleDao.getPerson(id));
+        model.addAttribute("person", personServices.getPersonById(id));
         return "people/edit";
     }
 
@@ -56,17 +57,19 @@ public class PeopleController {
     public String createPerson(
             @ModelAttribute("person") @Valid Person person,
             BindingResult bindingResult) {
+        personValidator.validate(person, bindingResult);
+
         if(bindingResult.hasErrors()) {
             return "people/new";
         } else {
-            peopleDao.save(person);
+            personServices.save(person);
             return "redirect:/people";
         }
     }
 
     @DeleteMapping("/{id}")
     public String deletePerson(@PathVariable("id") int id) {
-        peopleDao.delete(id);
+        personServices.delete(id);
         return "redirect:/people";
     }
 
@@ -77,7 +80,7 @@ public class PeopleController {
         if(bindingResult.hasErrors()) {
             return "people/edit";
         } else {
-            peopleDao.update(id, person);
+            personServices.update(id, person);
             return "redirect:/people";
         }
     }

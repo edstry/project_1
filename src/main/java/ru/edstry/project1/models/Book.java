@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @Entity
@@ -35,6 +37,13 @@ public class Book {
     @Min(value = 1000, message = "Year should be greater then 1000")
     @Column(name = "year")
     private int year;
+
+    @Column(name = "taken_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date takenAt;
+
+    @Transient
+    private boolean expired;
 
     public Book() {
     }

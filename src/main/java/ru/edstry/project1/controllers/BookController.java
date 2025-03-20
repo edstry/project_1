@@ -10,6 +10,8 @@ import ru.edstry.project1.dao.BookDAO;
 import ru.edstry.project1.dao.PeopleDAO;
 import ru.edstry.project1.models.Book;
 import ru.edstry.project1.models.Person;
+import ru.edstry.project1.services.BookServices;
+import ru.edstry.project1.services.PersonServices;
 
 import java.util.Optional;
 
@@ -17,18 +19,37 @@ import java.util.Optional;
 @RequestMapping("/book")
 public class BookController {
 
-    private final BookDAO bookDAO;
-    private final PeopleDAO peopleDAO;
+    private final BookServices bookServices;
+    private final PersonServices personServices;
 
     @Autowired
-    public BookController(BookDAO bookDAO, PeopleDAO peopleDAO) {
-        this.bookDAO = bookDAO;
-        this.peopleDAO = peopleDAO;
+    public BookController(BookServices bookServices, PersonServices personServices) {
+        this.bookServices = bookServices;
+        this.personServices = personServices;
+    }
+
+    @GetMapping("/search")
+    public String searchPage() {
+        return "book/search";
+    }
+
+    @PostMapping("/search")
+    public String makeSearch(Model model, @RequestParam("query") String query) {
+        model.addAttribute("books", bookServices.searchByTitle(query));
+        return "books/search";
     }
 
     @GetMapping()
-    public String index(Model model) {
-        model.addAttribute("books", bookDAO.index());
+    public String index(Model model,
+                        @RequestParam(value = "page", required = false) Integer page,
+                        @RequestParam(value = "books_per_page", required = false) Integer booksPerPage,
+                        @RequestParam(value = "sort_by_year", required = false) boolean sortByYear) {
+        if(page == null || booksPerPage == null) {
+            model.addAttribute("books", bookServices.index(sortByYear));
+        } else {
+            model.addAttribute("books", bookServices.indexWithPagination(page, booksPerPage, sortByYear));
+        }
+
         return "book/index";
     }
 
@@ -37,12 +58,12 @@ public class BookController {
             @PathVariable("id") int id,
             Model model,
             @ModelAttribute("person") Person person) {
-        model.addAttribute("book", bookDAO.getBook(id));
-        Optional<Person> bookOwner = bookDAO.getBookOwner(id);
+        model.addAttribute("book", bookServices.getBookById(id));
+        Optional<Person> bookOwner = bookServices.getBookOwner(id);
         if(bookOwner.isPresent()) {
             model.addAttribute("owner", bookOwner.get());
         } else {
-            model.addAttribute("people", peopleDAO.index());
+            model.addAttribute("people", personServices.index());
         }
         return "book/show";
     }
@@ -60,20 +81,20 @@ public class BookController {
         if(bindingResult.hasErrors()) {
             return "book/new";
         } else {
-            bookDAO.save(book);
+            bookServices.save(book);
             return "redirect:/book";
         }
     }
 
     @DeleteMapping("/{id}")
     public String delete(@PathVariable("id") int id) {
-        bookDAO.delete(id);
+        bookServices.delete(id);
         return "redirect:/book";
     }
 
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable("id") int id, Model model) {
-        model.addAttribute("book", bookDAO.getBook(id));
+        model.addAttribute("book", bookServices.getBookById(id));
         return "book/edit";
     }
 
@@ -85,7 +106,7 @@ public class BookController {
         if(bindingResult.hasErrors()) {
             return "book/new";
         } else {
-            bookDAO.update(id, book);
+            bookServices.update(id, book);
             return "redirect:/book/" + book.getId();
         }
     }
@@ -94,14 +115,14 @@ public class BookController {
     public String assign(
             @PathVariable("id") int bookId,
             @ModelAttribute("person") Person selectedPerson) {
-        bookDAO.assign(bookId, selectedPerson);
+        bookServices.assign(bookId, selectedPerson);
         return "redirect:/book/" + bookId;
     }
 
     @PatchMapping("/{id}/release")
     public String release(
             @PathVariable("id") int bookId) {
-        bookDAO.release(bookId);
+        bookServices.release(bookId);
         return "redirect:/book/" + bookId;
     }
 }
